@@ -106,6 +106,8 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$.version", is(1)));
     }
 
+
+    //----------------------------- NUEVAS VALIDACIONES ---------------------------------------------------------------
     @Test
     @DisplayName("PUT /rest/widget/10")
     void testUpdateWidget()throws Exception{
@@ -146,6 +148,30 @@ class WidgetRestControllerTest {
                 .header(HttpHeaders.IF_MATCH,5)
                 .content(asJsonString(widgetToPut)))
                 .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @DisplayName("Get /rest/widget/55")
+    void getById()throws Exception{
+        // Setup our mocked service
+        Widget widget55 = new Widget(55l, "Widget 55", "Description 55", 4);
+        doReturn(Optional.of(widget55)).when(service).findById(55l);
+
+        mockMvc.perform(get("/rest/widget/{id}",55l))
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+                // Validate headers
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/55"))
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(55)))
+                .andExpect(jsonPath("$.name", is("Widget 55")))
+                .andExpect(jsonPath("$.description", is("Description 55")))
+                .andExpect(jsonPath("$.version", is(4)));
+
 
     }
 
