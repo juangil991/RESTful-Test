@@ -107,23 +107,45 @@ class WidgetRestControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /rest/widget/1")
+    @DisplayName("PUT /rest/widget/10")
     void testUpdateWidget()throws Exception{
         Widget widgetToPut = new Widget("Widget Update","Updating Widget");
-        Widget widgetToReturn = new Widget(1l,"Widget Update","Updating Widget",2);
-        doReturn(Optional.of(widgetToReturn)).when(service).findById(1l);
+        Widget widgetToReturn = new Widget(10l,"Widget Update","Updating Widget",5);
+        doReturn(Optional.of(widgetToReturn)).when(service).findById(10l);
         doReturn(widgetToReturn).when(service).save(any());
 
-        mockMvc.perform(put("/rest/widget/{id}",1l)
+        mockMvc.perform(put("/rest/widget/{id}",10l)
+                //Put Request
                 .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.IF_MATCH,2)
+                .header(HttpHeaders.IF_MATCH,5)
                 .content(asJsonString(widgetToPut))
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
 
+                //validaciones
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/10"))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"5\""))
 
+                // Validaciones retorno
+                .andExpect(jsonPath("$.id", is(10)))
+                .andExpect(jsonPath("$.name", is("Widget Update")))
+                .andExpect(jsonPath("$.description", is("Updating Widget")))
+                .andExpect(jsonPath("$.version", is(5)));
 
+    }
 
+    @Test
+    @DisplayName("PUT /rest/widget/10 - NO Found")
+    void putNotFound() throws Exception{
+        Widget widgetToPut = new Widget("Widget Update","Updating Widget");
+        doReturn(Optional.empty()).when(service).findById(10l);
+
+        mockMvc.perform(put("/rest/widget/{id}",10l)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.IF_MATCH,5)
+                .content(asJsonString(widgetToPut)))
+                .andExpect(status().isNotFound());
 
     }
 
